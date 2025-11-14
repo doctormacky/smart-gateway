@@ -1,5 +1,7 @@
 # Smart Gateway
 
+[English](./README_EN.md) | 简体中文
+
 基于 Apache APISIX 的 Java 版本插件，兼容 smart-admin(smart-admin底层采用了 sa-token 进行身份验证) 签发的 token。该插件与Apache APISIX 3.14.1 版本兼容。
 它不能单独运行，需要与Apache APISIX 一起运行。
 
