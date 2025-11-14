@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: smart-gateway
+  data:
+    redis:
+      host: 192.168.201.112
+      port: 6379
+      password: redis123
+      database: 1
+      timeout: 10s
+      lettuce:
+        pool:
+          max-active: 200
+          max-wait: -1ms
+          max-idle: 10
+          min-idle: 0
+socket:
+  file: /tmp/runner.sock
+  file-mode: 0777
+logging:
+  level:
+    org.apache.apisix.plugin.runner: DEBUG
+    com.jsjf.ai.smartgateway: DEBUG
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: 2592000
+  active-timeout: -1
+  is-concurrent: false
+  is-share: false
+  token-style: simple-uuid
+  auto-renew: true
+  is-log: true
+  log-level: debug
+  is-print: false
+  is-read-cookie: false
+

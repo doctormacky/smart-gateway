@@ -1,0 +1,87 @@
+# ./apisix_conf/config.yaml
+deployment:
+  admin:
+    enable_admin_ui: true
+    allow_admin:
+      - 0.0.0.0/0
+    admin_key:
+      - name: "admin"
+        key: edd1c9f034335f136f87ad84b625c8f1
+        role: admin
+
+etcd:
+  host:
+    - "http://etcd:2379"
+  prefix: "/apisix"
+  timeout: 30
+
+plugins:
+  # 认证鉴权
+  - key-auth
+  - jwt-auth
+  - basic-auth
+  - hmac-auth
+  - ldap-auth
+  - oauth
+  - openid-connect
+  
+  # 安全防护
+  - ip-restriction
+  - ua-restriction
+  - referer-restriction
+  - uri-blocker
+  - csrf
+  - cors
+  
+  # 流量控制
+  - limit-req
+  - limit-conn
+  - limit-count
+  
+  # 请求转换
+  - proxy-rewrite
+  - response-rewrite
+  - grpc-transcode
+  - grpc-web
+  
+  # 可观测性
+  - prometheus
+  - skywalking
+  - zipkin
+  - opentelemetry
+  - http-logger
+  - tcp-logger
+  - kafka-logger
+  - syslog
+  - error-log-logger
+  
+  # 流量管理
+  - traffic-split
+  - proxy-cache
+  - proxy-mirror
+  - api-breaker
+  - degrades
+  
+  # 其他
+  - redirect
+  - echo
+  - real-ip
+  - server-info
+  - batch-requests
+  - gzip
+  - request-id
+  - request-validation
+  - serverless-pre-function
+  - serverless-post-function
+  
+  # 外部插件（你的自定义插件）
+  - ext-plugin-pre-req
+  - ext-plugin-post-req
+
+ext-plugin:
+  path_for_test: /tmp/runner.sock
+
+nginx_config:
+  error_log_level: debug
+  http:
+    enable_access_log: true
