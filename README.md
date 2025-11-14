@@ -363,7 +363,7 @@ String auth = request.getVars("http_authorization");  // 对应 Authorization �
 ```
 
 **响应处理机制：**
-``java
+``` java
 // 重要：无论成功或失败，都必须调用 chain.filter()
 
 // 认证失败：
