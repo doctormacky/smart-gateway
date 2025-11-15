@@ -695,7 +695,7 @@ docker exec redis-local redis-cli -a redis123 BGSAVE
 
 ## 📊 版本历史
 
-### v2.0.0 (2024-11-15) - 分离容器架构
+### v2.0.0 (2025-11-15) - 分离容器架构
 
 - ✨ 重构为分离容器架构
 - ✨ 独立的 Java Runner 容器
@@ -703,7 +703,7 @@ docker exec redis-local redis-cli -a redis123 BGSAVE
 - ✨ 优化日志和监控
 - ✨ 改进调试体验
 
-### v1.0.0 (2024-11-14) - 单容器架构
+### v1.0.0 (2025-11-14) - 单容器架构
 
 - 🎉 初始版本发布
 - ✅ APISIX 与 Java Runner 集成
@@ -721,7 +721,7 @@ docker exec redis-local redis-cli -a redis123 BGSAVE
 ## 👥 联系方式
 
 - **作者:** Macky
-- **邮箱:** your-email@example.com
+- **邮箱:** liuyun105@126.com
 - **GitHub:** [doctormacky/smart-gateway](https://github.com/doctormacky/smart-gateway)
 
 ---

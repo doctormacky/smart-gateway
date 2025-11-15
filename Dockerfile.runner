@@ -1,4 +1,4 @@
-FROM openjdk:21-slim
+FROM openjdk:21-ea-21-jdk-slim
 LABEL authors="macky"
 LABEL description="Smart Gateway Java Plugin Runner for Apache APISIX"
 
@@ -6,7 +6,7 @@ LABEL description="Smart Gateway Java Plugin Runner for Apache APISIX"
 WORKDIR /app
 
 # 复制 JAR 包和启动脚本
-COPY target/smart-gateway-1.0.jar /app/runner.jar
+COPY target/smart-gateway-1.0.jar /app/app.jar
 COPY start.sh /app/start.sh
 
 # 设置脚本执行权限

@@ -10,7 +10,7 @@ umask 000
 java -jar \
   -Xmx${JAVA_XMX:-1g} \
   -Xms${JAVA_XMS:-1g} \
-  /app/runner.jar &
+  /app/app.jar &
 
 RUNNER_PID=$!
 echo "Java Runner started with PID: $RUNNER_PID"
