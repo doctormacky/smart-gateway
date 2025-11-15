@@ -1,155 +1,165 @@
-# Smart Gateway
+# Smart Gateway - Intelligent API Gateway
 
-English | [简体中文](./README.md)
+[![License](https://img.shields.io/badge/license-Apache%202-blue.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/)
+[![APISIX](https://img.shields.io/badge/APISIX-3.14.1-green.svg)](https://apisix.apache.org/)
+[![Architecture](https://img.shields.io/badge/Architecture-Microservices-brightgreen.svg)]()
 
-A Java-based plugin for Apache APISIX, compatible with tokens issued by smart-admin (which uses sa-token for authentication). This plugin is compatible with Apache APISIX version 3.14.1.
+English | [简体中文](README.md)
 
-## Author
+## 📖 Overview
 
-Liu Yun (liuyun105@126.com)
-
-## Project Overview
-
-Smart Gateway is an external plugin system for Apache APISIX, written in Java, specifically designed to handle sa-token based authentication. The project adopts a **single-container architecture**, integrating APISIX and Java Plugin Runner in the same Docker container, communicating efficiently via Unix Domain Socket.
+Smart Gateway is an enterprise-grade intelligent API gateway solution based on **Apache APISIX** and **Java Plugin Runner**. It adopts a **separated container architecture** to achieve high availability and easy scalability for microservice gateway systems.
 
 ### Core Features
 
-- **Smart Authentication**: Integrated Sa-Token for Redis-based distributed authentication
-- **Single Container Architecture**: APISIX and Java Runner run in the same container, simplifying deployment
-- **Efficient Communication**: Inter-process communication via Unix Domain Socket
-- **API Gateway**: High-performance API gateway based on APISIX 3.14.1
-- **Visual Management**: APISIX Dashboard supports visual route configuration
-- **Data Persistence**: Automatic etcd data persistence, no configuration loss on restart
-- **HTTPS Upstream**: Support for accessing external HTTPS services (e.g., httpbin.org)
+- 🔐 **Unified Authentication** - Redis-based token authentication with multiple strategies
+- 🚀 **High Performance Routing** - APISIX-powered HTTP routing and load balancing
+- 🔌 **Plugin-based Extension** - Custom business logic via Java Plugin Runner
+- 📊 **Observability** - Integrated Prometheus, logging, and monitoring
+- 🛡️ **Security Protection** - IP restriction, rate limiting, CORS, and more
+- 🐳 **Containerized Deployment** - One-click deployment with Docker Compose
 
-## Technology Stack
+---
 
-- **Apache APISIX**: 3.14.1-debian
-- **APISIX Java Plugin Runner**: 0.6.0
-- **Spring Boot**: 3.5.7
-- **Sa-Token**: 1.44.0
-- **etcd**: latest (OpenEuler, arm64)
-- **Redis**: 7-alpine (standalone container)
-- **Java**: 21 (OpenJDK)
-- **Maven**: 3.9.9
-- **Docker & Docker Compose**: Required
+## 🏗️ Tech Stack
 
-## Architecture Design
+| Component | Version | Description |
+|-----------|---------|-------------|
+| Apache APISIX | 3.14.1 | High-performance API Gateway |
+| Java | 21 | Java Plugin Runner Runtime |
+| Spring Boot | 3.4.0 | Plugin Development Framework |
+| Redis | Latest | Token Storage and Cache |
+| ETCD | Latest | APISIX Configuration Center |
+| Docker | Latest | Container Deployment |
 
-### Single Container Architecture
+---
+
+## 🎯 Architecture Design
+
+### Separated Container Architecture
 
 ```
-┌─────────────────────────────────────────┐
-│         APISIX Container                │
-│  ┌──────────────┐   ┌───────────────┐  │
-│  │    APISIX    │   │  Java Plugin  │  │
-│  │   (Nginx)    │◄──┤    Runner     │  │
-│  │              │   │  (Spring Boot)│  │
-│  └──────────────┘   └───────────────┘  │
-│         ▲                    │          │
-│         │    Unix Socket     │          │
-│         │  /tmp/runner.sock  │          │
-│         └────────────────────┘          │
-└─────────────────────────────────────────┘
-           │                    │
-           │                    │ Redis
-           ▼                    ▼
-    ┌──────────┐         ┌──────────┐
-    │   etcd   │         │  Redis   │
-    │Container │         │Container │
-    └──────────┘         └──────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                        Docker Network                        │
+│                                                               │
+│  ┌──────────────┐      ┌──────────────────┐                 │
+│  │   APISIX     │      │  Java Plugin     │                 │
+│  │  Container   │◄────►│     Runner       │                 │
+│  │              │      │   Container      │                 │
+│  │  - Routing   │      │  - Auth Logic    │                 │
+│  │  - Plugins   │      │  - Redis Access  │                 │
+│  │  - Load Bal. │      │  - Biz Plugins   │                 │
+│  └──────┬───────┘      └────────┬─────────┘                 │
+│         │                       │                            │
+│         │  Unix Socket (/tmp)   │                            │
+│         └───────────────────────┘                            │
+│                                                               │
+│  ┌──────────────┐      ┌──────────────────┐                 │
+│  │     ETCD     │      │      Redis       │                 │
+│  │   (Config)   │      │  (Token Store)   │                 │
+│  └──────────────┘      └──────────────────┘                 │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Advantages
+### Communication Mechanism
 
-1. **Simplified Deployment**: Only need to manage one application container
-2. **Efficient Communication**: Unix Socket is faster than TCP with lower latency
-3. **Resource Optimization**: Reduced container count, lower resource overhead
-4. **Unified Management**: Logs and configurations centralized in one container
+- **APISIX ↔ Java Runner**: Unix Domain Socket (`/tmp/runner.sock`)
+- **Java Runner ↔ Redis**: TCP (host.docker.internal:6379)
+- **APISIX ↔ ETCD**: HTTP (etcd:2379)
+- **Client ↔ APISIX**: HTTP (localhost:9080)
 
-## Project Structure
+### Architecture Advantages
+
+✅ **Loose Coupling** - Independent components  
+✅ **Easy Scaling** - Scale Java Runner instances independently  
+✅ **Easy Debugging** - Separated logs for quick troubleshooting  
+✅ **High Availability** - Single component failure doesn't affect the whole system  
+✅ **Flexible Deployment** - Independent upgrades and version management  
+
+---
+
+## 📁 Project Structure
 
 ```
 smart-gateway/
-├── apisix_conf/                # Apache APISIX configuration directory
-│   └── config.yaml             # APISIX main config (routes, plugins, ext-plugin config)
-├── docker-compose.yml          # Docker Compose orchestration (APISIX + etcd)
-├── Dockerfile                  # Dockerfile for building integrated image
-├── start-runner.sh             # Java Runner startup script (auto socket permission fix)
-├── pom.xml                     # Maven project configuration
-├── README.md                   # Project documentation (Chinese)
-├── README_EN.md                # Project documentation (English)
-├── src/                        # Source code directory
-│   └── main/
-│       ├── java/               # Java source code
-│       │   └── com/jsjf/ai/smartgateway/
-│       │       ├── SmartGatewayApplication.java
-│       │       └── SmartAuthenticationFilter.java
-│       └── resources/
-│           └── application.yml # Spring Boot configuration
-└── target/
-    └── smart-gateway-1.0.jar   # Compiled JAR package
+├── src/main/java/com/macky/smartgateway/
+│   ├── SmartGatewayApplication.java          # Main Application
+│   └── filter/
+│       └── SmartAuthenticationFilter.java    # Authentication Filter
+├── src/main/resources/
+│   └── application.yml                        # Spring Boot Config
+├── apisix_conf/
+│   └── config.yaml                            # APISIX Configuration
+├── Dockerfile                                 # APISIX Container Image
+├── Dockerfile.runner                          # Java Runner Container Image
+├── docker-compose.yml                         # Container Orchestration
+├── pom.xml                                    # Maven Dependencies
+└── README.md                                  # Documentation
 ```
 
-## Quick Start
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-1. **Install Docker and Docker Compose**
-2. **Start standalone Redis container** (for storing authentication tokens)
+- Docker 20.10+
+- Docker Compose 2.0+
+- Maven 3.8+ (for building JAR)
+- Java 21+ (for local development)
+
+### Deployment Steps
+
+#### 1. Clone Repository
 
 ```bash
-# Start Redis (if not already running)
-docker run -d --name redis-local \
+git clone https://github.com/doctormacky/smart-gateway.git
+cd smart-gateway
+```
+
+#### 2. Build JAR Package
+
+```bash
+mvn clean package -DskipTests
+```
+
+#### 3. Start Redis (Standalone Container)
+
+```bash
+docker run -d \
+  --name redis-local \
   -p 6379:6379 \
-  redis:7-alpine redis-server --requirepass redis123
+  redis:latest \
+  redis-server --requirepass redis123
 ```
 
-### 1. Build Project
+#### 4. Start Gateway Services
 
 ```bash
-# Build with Maven
-./mvnw clean package -DskipTests
-
-# Verify JAR file generation
-ls -lh target/smart-gateway-1.0.jar
-```
-
-### 2. Start Services
-
-```bash
-# Start APISIX and etcd
 docker-compose up -d --build
+```
 
-# Check service status
+#### 5. Verify Service Status
+
+```bash
+# Check container status
 docker-compose ps
 
-# View logs
-docker-compose logs -f apisix
+# Check Java Runner logs
+docker-compose logs java-plugin-runner
+
+# Check APISIX logs
+docker-compose logs apisix
+
+# Verify socket file
+docker exec smart-gateway-java-plugin-runner-1 ls -la /tmp/runner.sock
 ```
 
-### 3. Verify Services
+#### 6. Configure Routes and Test
 
 ```bash
-# Check if Java Runner started
-docker-compose logs apisix 2>&1 | grep "listening on the socket"
-
-# Check Socket file permissions
-docker exec smart-gateway-apisix-1 ls -la /tmp/runner.sock
-# Should display: srw-rw-rw- 1 root root 0 ... /tmp/runner.sock
-```
-
-### 4. Access APISIX Dashboard
-
-Open browser and visit: `http://localhost:9180/ui/`
-
-- Default username: `admin`
-- Default password: `admin`
-- API Key: `edd1c9f034335f136f87ad84b625c8f1`
-
-### 5. Configure Routes
-
-```bash
+# Configure test route
 curl -X PUT http://127.0.0.1:9180/apisix/admin/routes/get \
   -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1' \
   -H 'Content-Type: application/json' \
@@ -157,7 +167,9 @@ curl -X PUT http://127.0.0.1:9180/apisix/admin/routes/get \
     "uri": "/get",
     "upstream": {
       "type": "roundrobin",
-      "nodes": {"httpbin.org:443": 1},
+      "nodes": {
+        "httpbin.org:443": 1
+      },
       "scheme": "https"
     },
     "plugins": {
@@ -171,88 +183,63 @@ curl -X PUT http://127.0.0.1:9180/apisix/admin/routes/get \
       }
     }
   }'
-```
 
-### 6. Test Authentication
-
-#### Prepare Test Data
-
-```bash
 # Set test token in Redis
 docker exec redis-local redis-cli -a redis123 -n 1 \
   SET "Authorization:login:token:test-token-123" "user123"
-```
 
-#### Test Scenarios
-
-```bash
-# Test 1: No Token (should return 401 AUTH_001)
+# Run tests
+# Test 1: No Token (should return 401)
 curl -i http://localhost:9080/get
 
-# Test 2: Valid Token (should return 200 OK)
+# Test 2: Valid Token (should return 200)
 curl -i http://localhost:9080/get \
   -H 'Authorization: Bearer test-token-123'
 
-# Test 3: Invalid Token (should return 401 AUTH_004)
+# Test 3: Invalid Token (should return 401)
 curl -i http://localhost:9080/get \
   -H 'Authorization: Bearer invalid-token'
 
-# Test 4: Malformed Token (should return 401 AUTH_002)
+# Test 4: Malformed Token (should return 401)
 curl -i http://localhost:9080/get \
   -H 'Authorization: InvalidFormat'
 ```
 
-#### Expected Results
+### Test Results
 
-| Test Scenario | HTTP Status | Error Code | Description |
-|--------------|-------------|------------|-------------|
-| No Token | 401 | AUTH_001 | Authentication token not provided |
-| Valid Token | 200 | - | Successfully accessed upstream service |
-| Invalid Token | 401 | AUTH_004 | Token invalid or expired |
-| Malformed | 401 | AUTH_002 | Token format error |
+| Test Scenario | Expected Result | Error Code | Description |
+|--------------|----------------|------------|-------------|
+| No Token | 401 Unauthorized | AUTH_001 | Authentication token not provided |
+| Valid Token | 200 OK | - | Successfully accessed upstream |
+| Invalid Token | 401 Unauthorized | AUTH_004 | Token invalid or expired |
+| Malformed Token | 401 Unauthorized | AUTH_002 | Token format error |
 
-## Configuration Guide
+---
 
-### 1. APISIX Configuration (apisix_conf/config.yaml)
+## ⚙️ Configuration
 
-#### ext-plugin Configuration (Critical)
+### 1. APISIX Configuration (`apisix_conf/config.yaml`)
 
 ```yaml
 ext-plugin:
-  # Use startup script to auto-fix socket permissions
-  cmd: ["/bin/bash", "/usr/local/apisix-runner/start-runner.sh"]
-  # Socket file path (APISIX 3.x connects to this path by default)
+  # Java Plugin Runner runs in a separate container
+  # Communicates via Unix Socket through shared /tmp directory
   path_for_test: /tmp/runner.sock
 ```
 
-#### etcd Configuration
+**Key Points:**
+- ❌ **No `cmd` configuration needed** - Java Runner starts in its own container
+- ✅ **Only specify socket path** - APISIX communicates via socket
+- ✅ **Auto-reconnect** - APISIX reconnects automatically after Runner restart
 
-```yaml
-etcd:
-  host:
-    - "http://etcd:2379"
-  prefix: "/apisix"
-  timeout: 30
-```
-
-#### Plugin List
-
-40+ common plugins enabled, including:
-- **Authentication**: `key-auth`, `jwt-auth`, `basic-auth`, `hmac-auth`, etc.
-- **Security**: `ip-restriction`, `cors`, `csrf`, `uri-blocker`, etc.
-- **Traffic Control**: `limit-req`, `limit-conn`, `limit-count`
-- **Request Transformation**: `proxy-rewrite`, `response-rewrite`
-- **Observability**: `prometheus`, `http-logger`, `zipkin`, etc.
-- **External Plugins**: `ext-plugin-pre-req`, `ext-plugin-post-req`
-
-### 2. Spring Boot Configuration (application.yml)
+### 2. Spring Boot Configuration (`application.yml`)
 
 ```yaml
 spring:
   application:
     name: smart-gateway
   main:
-    web-application-type: none  # Disable web server (avoid port conflicts)
+    web-application-type: none  # Non-web app, no HTTP server
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
@@ -261,371 +248,490 @@ spring:
       database: 1
 ```
 
+**Key Points:**
+- `web-application-type: none` - Runs as plugin, no web server needed
+- Environment variables override - Support Docker env var overrides
+- Redis database 1 - Avoid conflicts with other apps
+
 ### 3. Docker Compose Configuration
 
 ```yaml
 services:
   apisix:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    user: root  # Root permission needed to access socket
     volumes:
-      # Mount config file (read-only)
-      - ./apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml:ro
-    ports:
-      - "9180:9180"   # Admin API
-      - "9080:9080"   # HTTP Gateway
-      - "5005:5005"   # JDWP remote debugging port (optional)
-    extra_hosts:
-      # Allow container to access host's Redis
-      - "host.docker.internal:host-gateway"
+      - ./tmp:/tmp:rw  # Shared Unix Socket directory
+    depends_on:
+      - java-plugin-runner  # Ensure Runner starts first
+
+  java-plugin-runner:
+    volumes:
+      - ./tmp:/tmp:rw  # Shared Unix Socket directory
     environment:
-      - SPRING_DATA_REDIS_HOST=host.docker.internal
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=redis123
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis123
 ```
 
-### 4. Startup Script (start-runner.sh)
+**Key Points:**
+- **Shared /tmp directory** - Both containers share socket file via this directory
+- **Dependency order** - APISIX depends on Java Runner for startup order
+- **host.docker.internal** - Access Redis on host machine
 
-```bash
-#!/bin/bash
-# Start Java Runner (background)
-java -jar -Xmx1g -Xms1g \
-  -Dspring.data.redis.host=host.docker.internal \
-  -Dspring.data.redis.port=6379 \
-  -Dspring.data.redis.password=redis123 \
-  /usr/local/apisix-runner/apisix-java-plugin-runner.jar &
+---
 
-# Wait for socket file creation
-for i in {1..30}; do
-  if [ -S /tmp/runner.sock ]; then
-    # Change permissions to 666 (all users can read/write)
-    chmod 666 /tmp/runner.sock
-    echo "Socket file permissions updated: $(ls -la /tmp/runner.sock)"
-    break
-  fi
-  sleep 0.5
-done
-
-# Keep script running
-wait
-```
-
-**Key Points**:
-- Socket file default permission is `600` (only creator can access)
-- APISIX worker processes need to access socket, so must change to `666`
-- Script waits for socket creation then auto-fixes permissions
-
-## How It Works
+## 🔍 How It Works
 
 ### Authentication Flow
 
 ```
-1. Client Request
-   ↓
-2. APISIX Receives Request
-   ↓
-3. Forward to Java Plugin Runner via Unix Socket
-   ↓
-4. SmartAuthenticationFilter Processing
-   ├─ Extract Authorization header (via nginx variable)
-   ├─ Parse Bearer Token
-   ├─ Validate Token in Redis
+1. Client Request → APISIX (9080)
+2. APISIX invokes ext-plugin-pre-req
+3. Sends request to Java Runner via Unix Socket
+4. SmartAuthenticationFilter processes:
+   ├─ Extract Authorization Header
+   ├─ Validate Token format (Bearer xxx)
+   ├─ Query Redis (Authorization:login:token:{token})
    └─ Return authentication result
-   ↓
-5. APISIX Decides Based on Result
-   ├─ Authentication Success → Forward to upstream service
-   └─ Authentication Failure → Return 401 error
+5. APISIX acts based on result:
+   ├─ Auth Success → Forward to upstream
+   └─ Auth Failure → Return 401 error
 ```
 
-### Key Technical Points
+### Error Codes
 
-1. **Get Request Headers via nginx Variables**
-   ```java
-   @Override
-   public List<String> requiredVars() {
-       return Arrays.asList("http_authorization");
-   }
-   
-   String auth = request.getVars("http_authorization");
-   ```
+| Error Code | HTTP Status | Description | Solution |
+|-----------|-------------|-------------|----------|
+| AUTH_001 | 401 | Authentication token not provided | Add `Authorization: Bearer {token}` header |
+| AUTH_002 | 401 | Token format error | Ensure format is `Bearer {token}` |
+| AUTH_003 | 401 | Token is empty | Provide valid token value |
+| AUTH_004 | 401 | Token invalid or expired | Re-login to get new token |
+| AUTH_500 | 500 | Authentication service internal error | Check Redis connection and logs |
 
-2. **Must Call chain.filter()**
-   ```java
-   // Must call regardless of success or failure
-   response.setStatusCode(401);
-   chain.filter(request, response);  // ← Required!
-   ```
+---
 
-3. **Redis Key Format**
-   ```
-   Authorization:login:token:{token}
-   ```
+## 🛠️ Development Guide
 
-## Development Guide
+### Local Development
+
+```bash
+# 1. Start Redis
+docker run -d --name redis-local -p 6379:6379 \
+  redis:latest redis-server --requirepass redis123
+
+# 2. Start ETCD
+docker run -d --name etcd -p 2379:2379 \
+  -e ALLOW_NONE_AUTHENTICATION=yes \
+  -e ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379 \
+  openeuler/etcd:latest
+
+# 3. Run Java Runner locally (for debugging)
+mvn spring-boot:run
+
+# 4. Start APISIX (connect to local Runner)
+docker-compose up apisix
+```
 
 ### Redeploy After Code Changes
 
 ```bash
-# 1. Recompile
-./mvnw clean package -DskipTests
+# Rebuild after code changes
+mvn clean package -DskipTests
 
-# 2. Rebuild image (force no cache)
-docker-compose build --no-cache apisix
+# Restart Java Runner container
+docker-compose up -d --build java-plugin-runner
 
-# 3. Restart services
+# Or restart all services
 docker-compose down
-docker-compose up -d
-
-# 4. Verify
-docker-compose logs apisix 2>&1 | grep "SmartAuthenticationFilter"
+docker-compose up -d --build
 ```
 
-### Create Custom Plugin
+### View Logs
+
+```bash
+# Real-time Java Runner logs
+docker-compose logs -f java-plugin-runner
+
+# Real-time APISIX logs
+docker-compose logs -f apisix
+
+# All logs
+docker-compose logs -f
+
+# Last 100 lines
+docker-compose logs --tail=100 java-plugin-runner
+```
+
+### Debugging Tips
+
+#### 1. Enable Remote Debugging
+
+Modify `docker-compose.yml`:
+
+```yaml
+java-plugin-runner:
+  ports:
+    - "5005:5005"
+  environment:
+    - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+```
+
+Then configure remote debugging in your IDE to connect to `localhost:5005`.
+
+#### 2. View Socket Communication
+
+```bash
+# Enter APISIX container
+docker exec -it smart-gateway-apisix-1 bash
+
+# Check socket file
+ls -la /tmp/runner.sock
+
+# Test socket connection
+echo "test" | nc -U /tmp/runner.sock
+```
+
+#### 3. Redis Data Inspection
+
+```bash
+# Connect to Redis
+docker exec -it redis-local redis-cli -a redis123 -n 1
+
+# View all tokens
+KEYS Authorization:login:token:*
+
+# View specific token
+GET Authorization:login:token:test-token-123
+
+# Set test token
+SET Authorization:login:token:debug-token user-debug
+```
+
+### Custom Plugin Development
+
+#### 1. Create New Filter
 
 ```java
+@Component("MyCustomFilter")
 @Slf4j
-@Component
 public class MyCustomFilter implements PluginFilter {
     
     @Override
     public String name() {
-        return "MyCustomFilter";  // Must match name in route config
-    }
-    
-    @Override
-    public List<String> requiredVars() {
-        // Declare required nginx variables
-        return Arrays.asList("http_authorization", "http_user_agent");
+        return "MyCustomFilter";
     }
     
     @Override
     public void filter(HttpRequest request, HttpResponse response, PluginFilterChain chain) {
-        // Get request headers
-        String auth = request.getVars("http_authorization");
+        // Custom logic
+        log.info("Processing request: {}", request.getPath());
         
-        // Business logic
-        if (auth == null) {
-            response.setBody("{\"error\":\"Unauthorized\"}");
-            response.setHeader("Content-Type", "application/json");
-            response.setStatusCode(401);
-        }
-        
-        // Must call!
+        // Continue chain
         chain.filter(request, response);
     }
 }
 ```
 
-### Debugging Tips
+#### 2. Configure in APISIX
 
 ```bash
-# View full logs
-docker-compose logs -f apisix
-
-# View Java startup logs
-docker-compose logs apisix 2>&1 | grep "SmartGateway"
-
-# Check Socket file
-docker exec smart-gateway-apisix-1 ls -la /tmp/runner.sock
-
-# Enter container for debugging
-docker exec -it smart-gateway-apisix-1 bash
-
-# View tokens in Redis
-docker exec redis-local redis-cli -a redis123 -n 1 KEYS "Authorization:*"
+curl -X PUT http://127.0.0.1:9180/apisix/admin/routes/custom \
+  -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1' \
+  -d '{
+    "uri": "/custom/*",
+    "plugins": {
+      "ext-plugin-pre-req": {
+        "conf": [
+          {"name": "MyCustomFilter", "value": "{}"}
+        ]
+      }
+    },
+    "upstream": {...}
+  }'
 ```
 
-## Common Issues
+---
 
-### 1. Socket Permission Error
+## ❓ FAQ
 
-**Error Message**:
-```
-failed to connect to the unix socket unix:/tmp/runner.sock: permission denied
-```
+### 1. 503 Service Temporarily Unavailable
 
-**Cause**: Java Runner creates socket file with `600` permissions, APISIX worker processes cannot access.
+**Cause:** APISIX cannot connect to Java Runner socket.
 
-**Solution**: Use `start-runner.sh` startup script to auto-fix permissions to `666`.
+**Troubleshooting:**
 
-### 2. 503 Service Temporarily Unavailable
-
-**Possible Causes**:
-1. Java Runner not started
-2. Socket file doesn't exist
-3. Socket path misconfigured
-
-**Troubleshooting Steps**:
 ```bash
-# 1. Check if Java Runner started
-docker-compose logs apisix 2>&1 | grep "listening on the socket"
+# 1. Check if Java Runner is running
+docker-compose ps java-plugin-runner
 
-# 2. Check Socket file
-docker exec smart-gateway-apisix-1 ls -la /tmp/runner.sock
+# 2. Check if socket file exists
+docker exec smart-gateway-java-plugin-runner-1 ls -la /tmp/runner.sock
 
-# 3. Check path_for_test in config.yaml
-docker exec smart-gateway-apisix-1 cat /usr/local/apisix/conf/config.yaml | grep path_for_test
+# 3. Check Java Runner logs
+docker-compose logs java-plugin-runner | grep "listening on the socket"
+
+# 4. Check /tmp directory mount
+docker-compose exec apisix ls -la /tmp/
+docker-compose exec java-plugin-runner ls -la /tmp/
 ```
 
-### 3. Redis Connection Failure
+**Solution:**
 
-**Error Message**:
-```
-Unable to connect to Redis
-```
-
-**Solution**:
 ```bash
-# 1. Ensure Redis container is running
-docker ps | grep redis-local
+# Restart Java Runner
+docker-compose restart java-plugin-runner
 
-# 2. Test if container can connect to Redis
-docker exec smart-gateway-apisix-1 sh -c \
-  "apt-get update > /dev/null 2>&1 && apt-get install -y telnet > /dev/null 2>&1 && \
-   echo 'PING' | telnet host.docker.internal 6379"
+# Wait 10 seconds for socket creation
+sleep 10
 
-# 3. Check environment variables
-docker-compose config | grep REDIS
+# Verify socket file
+docker exec smart-gateway-java-plugin-runner-1 ls -la /tmp/runner.sock
 ```
 
-### 4. Plugin Not Recognized
+### 2. Java Runner Startup Failure
 
-**Error Message**:
-```
-receive undefined filter: SmartAuthenticationFilter
-```
+**Possible Causes:**
+- JAR not built or wrong path
+- Redis connection failure
+- Port conflict
 
-**Solution**:
+**Solution:**
+
 ```bash
-# 1. Ensure @Component annotation is used
-grep '@Component' src/main/java/com/jsjf/ai/smartgateway/SmartAuthenticationFilter.java
+# 1. Ensure JAR exists
+ls -la target/smart-gateway-1.0.jar
 
-# 2. Ensure name() return value is correct
-grep 'public String name()' -A 1 src/main/java/com/jsjf/ai/smartgateway/SmartAuthenticationFilter.java
+# 2. Check Redis connection
+docker exec redis-local redis-cli -a redis123 ping
 
-# 3. Recompile and rebuild
-./mvnw clean package -DskipTests
-docker-compose build --no-cache apisix
-docker-compose restart apisix
+# 3. View detailed logs
+docker-compose logs java-plugin-runner
+
+# 4. Rebuild
+mvn clean package -DskipTests
+docker-compose up -d --build java-plugin-runner
 ```
 
-### 5. Route 404
+### 3. Redis Connection Timeout
 
-**Issue**: Accessing route returns 404 after configuration
+**Cause:** Java Runner cannot access `host.docker.internal`.
 
-**Solution**:
+**Solution:**
+
+```yaml
+# Ensure extra_hosts is configured in docker-compose.yml
+java-plugin-runner:
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+```
+
+Or use Redis container name:
+
+```yaml
+# Add Redis to same network
+services:
+  redis:
+    image: redis:latest
+    networks:
+      - apisix
+    command: redis-server --requirepass redis123
+
+  java-plugin-runner:
+    environment:
+      - REDIS_HOST=redis  # Use container name
+```
+
+### 4. Always Returns 401
+
+**Troubleshooting:**
+
 ```bash
-# 1. Check if route was created successfully
+# 1. Check if token exists
+docker exec redis-local redis-cli -a redis123 -n 1 \
+  GET "Authorization:login:token:your-token"
+
+# 2. Check header format
+curl -v http://localhost:9080/get \
+  -H 'Authorization: Bearer your-token'
+
+# 3. View Java Runner logs
+docker-compose logs java-plugin-runner | grep "Token validation"
+```
+
+### 5. How to Scale Java Runner Independently?
+
+```yaml
+# docker-compose.yml
+services:
+  java-plugin-runner-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    volumes:
+      - ./tmp:/tmp:rw
+    # ... other configs
+
+  java-plugin-runner-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    volumes:
+      - ./tmp:/tmp:rw
+    # ... other configs
+```
+
+**Note:** Multiple Runner instances share the same socket file, APISIX will load balance automatically.
+
+### 6. How to View APISIX Configuration?
+
+```bash
+# View all routes
 curl http://127.0.0.1:9180/apisix/admin/routes \
   -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1'
 
-# 2. Ensure URI matches
-# Accessing http://localhost:9080/get
-# Route config uri must be "/get"
+# View specific route
+curl http://127.0.0.1:9180/apisix/admin/routes/get \
+  -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1'
 
-# 3. Use proxy-rewrite plugin to rewrite path (if needed)
+# Delete route
+curl -X DELETE http://127.0.0.1:9180/apisix/admin/routes/get \
+  -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1'
 ```
 
-## Production Environment Recommendations
+### 7. Containers Cannot Communicate
 
-### Security Configuration
+**Check network configuration:**
 
-1. **Change Default Admin Key**
-   ```yaml
-   deployment:
-     admin:
-       admin_key:
-         - name: "admin"
-           key: "your-secure-random-key-here"  # Change to strong password
-           role: admin
-   ```
+```bash
+# View networks
+docker network ls
 
-2. **Restrict Dashboard Access**
-   ```yaml
-   deployment:
-     admin:
-       allow_admin:
-         - 10.0.0.0/8  # Only allow internal network access
-   ```
+# View container network
+docker inspect smart-gateway-apisix-1 | grep NetworkMode
+docker inspect smart-gateway-java-plugin-runner-1 | grep NetworkMode
 
-3. **Configure Redis Password**
-   ```bash
-   docker run -d --name redis-local \
-     -p 6379:6379 \
-     redis:7-alpine redis-server --requirepass "your-strong-password"
-   ```
+# Ensure same network
+docker-compose exec apisix ping java-plugin-runner
+```
 
-### Performance Optimization
+---
 
-1. **Adjust JVM Parameters**
-   ```bash
-   # Modify in start-runner.sh
-   java -jar -Xmx2g -Xms2g \
-     -XX:+UseG1GC \
-     -XX:MaxGCPauseMillis=200 \
-     ...
-   ```
+## 🚀 Production Recommendations
 
-2. **Adjust Log Level**
-   ```yaml
-   nginx_config:
-     error_log_level: warn  # Use warn or error in production
-   ```
+### 1. Security Configuration
 
-3. **Add Resource Limits**
-   ```yaml
-   services:
-     apisix:
-       deploy:
-         resources:
-           limits:
-             cpus: '2'
-             memory: 2G
-           reservations:
-             cpus: '1'
-             memory: 1G
-   ```
+```yaml
+# apisix_conf/config.yaml
+deployment:
+  admin:
+    admin_key:
+      - name: "admin"
+        key: "your-secure-random-key-here"  # Change default key
+        role: admin
+    allow_admin:
+      - 10.0.0.0/8  # Restrict Admin API access IP
+```
 
-### Monitoring and Logging
+### 2. Performance Optimization
 
-1. **Enable Prometheus Plugin**
-   ```bash
-   # Access metrics
-   curl http://localhost:9091/apisix/prometheus/metrics
-   ```
+```yaml
+# docker-compose.yml
+java-plugin-runner:
+  environment:
+    - JAVA_OPTS=-Xmx2g -Xms2g -XX:+UseG1GC
+  deploy:
+    resources:
+      limits:
+        cpus: '2'
+        memory: 2G
+      reservations:
+        cpus: '1'
+        memory: 1G
+```
 
-2. **Centralized Log Collection**
-   ```yaml
-   # Use http-logger plugin to send logs to ELK
-   plugins:
-     - http-logger
-   ```
+### 3. Log Management
 
-## Version History
+```yaml
+# apisix_conf/config.yaml
+nginx_config:
+  error_log_level: warn  # Use warn in production
+  http:
+    access_log: /usr/local/apisix/logs/access.log
+    error_log: /usr/local/apisix/logs/error.log
+```
 
-- **v1.0** (2025-11-15)
-  - Initial release
-  - Single container architecture (APISIX + Java Runner)
-  - Sa-Token authentication support
-  - Unix Domain Socket communication
-  - Automatic socket permission management
+### 4. Monitoring Integration
 
-## License
+```yaml
+# Enable Prometheus plugin
+plugins:
+  - prometheus
 
-MIT License
+# Configure metrics endpoint
+plugin_attr:
+  prometheus:
+    export_addr:
+      ip: 0.0.0.0
+      port: 9091
+```
 
-## Contact
+### 5. High Availability Deployment
 
-- **Author**: Liu Yun
-- **Email**: liuyun105@126.com
-- **Project URL**: [GitHub](https://github.com/yourusername/smart-gateway)
+- Deploy multiple replicas using Kubernetes
+- Configure health checks and auto-restart
+- Use external Redis cluster
+- Configure ETCD cluster
 
-## Acknowledgments
+### 6. Backup Strategy
 
-- [Apache APISIX](https://apisix.apache.org/)
-- [APISIX Java Plugin Runner](https://github.com/apache/apisix-java-plugin-runner)
-- [Sa-Token](https://sa-token.cc/)
-- [Spring Boot](https://spring.io/projects/spring-boot)
+```bash
+# Backup ETCD data
+docker exec etcd etcdctl snapshot save /backup/etcd-snapshot.db
+
+# Backup Redis data
+docker exec redis-local redis-cli -a redis123 BGSAVE
+```
+
+---
+
+## 📊 Version History
+
+### v2.0.0 (2024-11-15) - Separated Container Architecture
+
+- ✨ Refactored to separated container architecture
+- ✨ Independent Java Runner container
+- ✨ Support independent scaling and deployment
+- ✨ Optimized logging and monitoring
+- ✨ Improved debugging experience
+
+### v1.0.0 (2024-11-14) - Single Container Architecture
+
+- 🎉 Initial release
+- ✅ APISIX and Java Runner integration
+- ✅ Redis-based token authentication
+- ✅ One-click Docker Compose deployment
+
+---
+
+## 📄 License
+
+This project is licensed under [Apache License 2.0](LICENSE).
+
+---
+
+## 👥 Contact
+
+- **Author:** Macky
+- **Email:** your-email@example.com
+- **GitHub:** [doctormacky/smart-gateway](https://github.com/doctormacky/smart-gateway)
+
+---
+
+## 🙏 Acknowledgments
+
+- [Apache APISIX](https://apisix.apache.org/) - High-performance API Gateway
+- [apisix-java-plugin-runner](https://github.com/apache/apisix-java-plugin-runner) - Java Plugin Runtime
+- [Spring Boot](https://spring.io/projects/spring-boot) - Application Framework
+
+---
+
+**⭐ If this project helps you, please give it a Star!**

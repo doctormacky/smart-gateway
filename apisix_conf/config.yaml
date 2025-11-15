@@ -79,7 +79,8 @@ plugins:
   - ext-plugin-post-req
 
 ext-plugin:
-  cmd: ["/bin/bash", "/usr/local/apisix-runner/start-runner.sh"]
+  # Java Plugin Runner 在独立容器中运行
+  # 通过共享的 /tmp 目录进行 Unix Socket 通信
   path_for_test: /tmp/runner.sock
 
 nginx_config:

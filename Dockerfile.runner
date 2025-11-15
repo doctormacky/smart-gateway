@@ -1,0 +1,26 @@
+FROM openjdk:21-slim
+LABEL authors="macky"
+LABEL description="Smart Gateway Java Plugin Runner for Apache APISIX"
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 JAR 包
+COPY target/smart-gateway-1.0.jar /app/runner.jar
+
+# 创建 /tmp 目录并设置权限
+RUN mkdir -p /tmp && chmod 777 /tmp
+
+# 暴露调试端口（可选）
+EXPOSE 5005
+
+# 启动命令
+CMD ["java", \
+     "-jar", \
+     "-Xmx1g", \
+     "-Xms1g", \
+     "-Dspring.data.redis.host=${REDIS_HOST:-host.docker.internal}", \
+     "-Dspring.data.redis.port=${REDIS_PORT:-6379}", \
+     "-Dspring.data.redis.password=${REDIS_PASSWORD:-redis123}", \
+     "-Dspring.data.redis.database=${REDIS_DATABASE:-1}", \
+     "/app/runner.jar"]
