@@ -22,9 +22,6 @@ services:
       - apisix
     environment:
       - APISIX_DEPLOYMENT_ETCD_HOST=["http://etcd:2379"]
-      - SPRING_DATA_REDIS_HOST=host.docker.internal
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=redis123
   
   etcd:
     image: openeuler/etcd:latest
