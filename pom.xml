@@ -47,14 +47,6 @@
 			<version>1.44.0</version>
 		</dependency>
 
-		<!-- Sa-Token 核心 -->
-		<dependency>
-			<groupId>cn.dev33</groupId>
-			<artifactId>sa-token-core</artifactId>
-			<version>1.44.0</version>
-		</dependency>
-
-
 		<!-- 1. SpringBoot 3 Redis 官方依赖 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

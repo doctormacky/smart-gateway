@@ -1,8 +1,8 @@
-version: "3"
-
 services:
   apisix:
-    image: apache/apisix:3.14.1-debian
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
     user: root
     dns:
@@ -10,17 +10,22 @@ services:
       - 8.8.4.4
     volumes:
       - ./apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml:ro
-      - ./tmp:/tmp:rw
     depends_on:
       - etcd
-      - java-plugin-runner
     ports:
       - "9180:9180"   # Admin API
       - "9080:9080"   # HTTP 网关
+      - "5005:5005"   # JDWP 远程调试端口（可选）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - apisix
     environment:
       - APISIX_DEPLOYMENT_ETCD_HOST=["http://etcd:2379"]
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=redis123
+  
   etcd:
     image: openeuler/etcd:latest
     platform: linux/arm64
@@ -35,19 +40,6 @@ services:
       - etcd-data:/etcd-data
     networks:
       - apisix
-
-  java-plugin-runner:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    volumes:
-      - ./tmp:/tmp:rw
-    networks:
-      - apisix
-    environment:
-      - SOCKET_FILE=/tmp/runner.sock
-      - SOCKET_FILE_MODE=777
 
 volumes:
   etcd-data:

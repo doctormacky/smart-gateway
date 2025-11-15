@@ -79,6 +79,7 @@ plugins:
   - ext-plugin-post-req
 
 ext-plugin:
+  cmd: ["/bin/bash", "/usr/local/apisix-runner/start-runner.sh"]
   path_for_test: /tmp/runner.sock
 
 nginx_config:
