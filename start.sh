@@ -10,10 +10,9 @@ umask 000
 java -jar \
   -Xmx${JAVA_XMX:-1g} \
   -Xms${JAVA_XMS:-1g} \
-  -Dspring.data.redis.host=${REDIS_HOST:-host.docker.internal} \
-  -Dspring.data.redis.port=${REDIS_PORT:-6379} \
-  -Dspring.data.redis.password=${REDIS_PASSWORD:-redis123} \
-  -Dspring.data.redis.database=${REDIS_DATABASE:-1} \
+  -Dspring.data.redis.host=${SPRING_DATA_REDIS_HOST:-host.docker.internal} \
+  -Dspring.data.redis.port=${SPRING_DATA_REDIS_PORT:-6379} \
+  -Dspring.data.redis.password=${SPRING_DATA_REDIS_PASSWORD:-redis123} \
   /app/runner.jar &
 
 RUNNER_PID=$!
