@@ -5,9 +5,9 @@ spring:
     web-application-type: none
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
-      password: ${SPRING_DATA_REDIS_PASSWORD:redis123}
+      host: 192.168.3.30
+      port: 6379
+      password: redis123
       database: 1
       timeout: 10s
       lettuce:

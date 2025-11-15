@@ -31,14 +31,8 @@ services:
     restart: always
     volumes:
       - ./tmp:/tmp:rw  # 共享 Unix Socket 目录
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - apisix
-    environment:
-      - SPRING_DATA_REDIS_HOST=host.docker.internal
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=redis123
     # 可选：启用远程调试
     # ports:
     #   - "5005:5005"

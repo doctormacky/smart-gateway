@@ -1,9 +1,6 @@
 #!/bin/bash
 # 启动 Java Runner
 java -jar -Xmx1g -Xms1g \
-  -Dspring.data.redis.host=host.docker.internal \
-  -Dspring.data.redis.port=6379 \
-  -Dspring.data.redis.password=redis123 \
   /usr/local/apisix-runner/apisix-java-plugin-runner.jar &
 
 # 等待 socket 文件创建
