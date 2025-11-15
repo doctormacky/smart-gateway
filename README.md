@@ -124,7 +124,24 @@ cd smart-gateway
 mvn clean package -DskipTests
 ```
 
-#### 3. 启动 Redis (独立容器)
+#### 3. 创建共享目录
+
+```bash
+# 创建 tmp 目录用于 Unix Socket 通信
+mkdir -p tmp
+chmod 777 tmp
+```
+
+> **重要**: `tmp` 目录用于 APISIX 和 Java Runner 之间的 Unix Socket 通信，必须在启动容器前创建。
+
+**或者使用启动脚本（推荐）**:
+
+```bash
+# 使用启动脚本会自动创建 tmp 目录
+./start-docker.sh
+```
+
+#### 4. 启动 Redis (独立容器)
 
 ```bash
 docker run -d \
@@ -134,13 +151,27 @@ docker run -d \
   redis-server --requirepass redis123
 ```
 
-#### 4. 启动网关服务
+#### 5. 启动网关服务
+
+**方式一：使用启动脚本（推荐）**
+
+```bash
+./start-docker.sh
+```
+
+启动脚本会自动：
+- 创建 `tmp` 目录（如果不存在）
+- 启动所有容器
+- 检查服务状态
+- 验证 Socket 文件
+
+**方式二：手动启动**
 
 ```bash
 docker-compose up -d --build
 ```
 
-#### 5. 验证服务状态
+#### 6. 验证服务状态
 
 ```bash
 # 查看容器状态

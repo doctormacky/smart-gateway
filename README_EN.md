@@ -124,7 +124,24 @@ cd smart-gateway
 mvn clean package -DskipTests
 ```
 
-#### 3. Start Redis (Standalone Container)
+#### 3. Create Shared Directory
+
+```bash
+# Create tmp directory for Unix Socket communication
+mkdir -p tmp
+chmod 777 tmp
+```
+
+> **Important**: The `tmp` directory is used for Unix Socket communication between APISIX and Java Runner. It must be created before starting containers.
+
+**Or use the startup script (Recommended)**:
+
+```bash
+# The startup script will automatically create the tmp directory
+./start-docker.sh
+```
+
+#### 4. Start Redis (Standalone Container)
 
 ```bash
 docker run -d \
@@ -134,13 +151,27 @@ docker run -d \
   redis-server --requirepass redis123
 ```
 
-#### 4. Start Gateway Services
+#### 5. Start Gateway Services
+
+**Option 1: Use Startup Script (Recommended)**
+
+```bash
+./start-docker.sh
+```
+
+The startup script will automatically:
+- Create `tmp` directory (if not exists)
+- Start all containers
+- Check service status
+- Verify Socket file
+
+**Option 2: Manual Start**
 
 ```bash
 docker-compose up -d --build
 ```
 
-#### 5. Verify Service Status
+#### 6. Verify Service Status
 
 ```bash
 # Check container status
