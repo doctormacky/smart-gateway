@@ -1,27 +1,39 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
-# 创建 /tmp 目录并设置权限
-mkdir -p /tmp
-chmod 777 /tmp
+echo "Starting Java Plugin Runner..."
 
-# 设置 umask 以确保创建的文件权限为 777
+# 设置 umask 为 000,使创建的 socket 文件权限为 777
 umask 000
 
-# 后台启动 Java 应用
-java -jar /app/app.jar &
+# 启动 Java Runner (后台运行)
+java -jar \
+  -Xmx${JAVA_XMX:-1g} \
+  -Xms${JAVA_XMS:-1g} \
+  -Dspring.data.redis.host=${REDIS_HOST:-host.docker.internal} \
+  -Dspring.data.redis.port=${REDIS_PORT:-6379} \
+  -Dspring.data.redis.password=${REDIS_PASSWORD:-redis123} \
+  -Dspring.data.redis.database=${REDIS_DATABASE:-1} \
+  /app/runner.jar &
+
+RUNNER_PID=$!
+echo "Java Runner started with PID: $RUNNER_PID"
 
 # 等待 socket 文件创建
-echo "Waiting for socket file to be created..."
-for i in 1 2 3 4 5 6 7 8 9 10; do
+echo "Waiting for socket file creation..."
+for i in {1..60}; do
   if [ -S /tmp/runner.sock ]; then
+    echo "Socket file created: $(ls -la /tmp/runner.sock)"
     break
   fi
-  sleep 1
+  sleep 0.5
 done
 
-# 修改 socket 文件权限
-chmod 777 /tmp/runner.sock
-echo "Socket file permissions updated: $(ls -l /tmp/runner.sock)"
+if [ ! -S /tmp/runner.sock ]; then
+  echo "ERROR: Socket file not created after 30 seconds"
+  exit 1
+fi
 
-# 等待 Java 进程
-wait
+# 等待 Java Runner 进程
+echo "Java Runner is ready, waiting for process..."
+wait $RUNNER_PID
