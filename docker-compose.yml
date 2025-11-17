@@ -1,8 +1,6 @@
 services:
   apisix:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: smart-gateway-apisix:latest
     restart: always
     user: root
     dns:
@@ -25,9 +23,7 @@ services:
       - APISIX_DEPLOYMENT_ETCD_HOST=["http://etcd:2379"]
 
   java-plugin-runner:
-    build:
-      context: .
-      dockerfile: Dockerfile.runner
+    image: smart-gateway-java-runner:latest
     restart: always
     volumes:
       - ./tmp:/tmp:rw  # 共享 Unix Socket 目录

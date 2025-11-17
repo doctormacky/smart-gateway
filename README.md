@@ -111,37 +111,67 @@ smart-gateway/
 
 ### 部署步骤
 
-#### 1. 克隆项目
+#### 方式一：一键启动（推荐）⭐️
+
+适合快速部署和日常使用：
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/doctormacky/smart-gateway.git
+cd smart-gateway
+
+# 2. 构建 JAR 包（首次部署需要）
+mvn clean package -DskipTests
+
+# 3. 一键启动（自动检查镜像、创建目录、启动服务）
+./start-docker.sh
+```
+
+启动脚本会自动完成：
+- ✅ 创建 `tmp` 目录（如果不存在）
+- ✅ 检查 APISIX 镜像（本地没有则从 Docker Hub 拉取）
+- ✅ 检查 Java Runner 镜像（本地没有则自动构建）
+- ✅ 启动所有容器服务
+- ✅ 验证服务状态和 Socket 文件
+
+#### 方式二：手动构建和启动
+
+适合需要自定义镜像或调试的场景：
+
+**步骤 1: 克隆项目**
 
 ```bash
 git clone https://github.com/doctormacky/smart-gateway.git
 cd smart-gateway
 ```
 
-#### 2. 构建 JAR 包
+**步骤 2: 构建 JAR 包**
 
 ```bash
 mvn clean package -DskipTests
 ```
 
-#### 3. 创建共享目录
+**步骤 3: 构建 Docker 镜像**
 
 ```bash
-# 创建 tmp 目录用于 Unix Socket 通信
-mkdir -p tmp
-chmod 777 tmp
+# 构建所有镜像
+./build-images.sh --all
+
+# 或者分别构建
+./build-images.sh --apisix    # 仅构建 APISIX 镜像
+./build-images.sh --runner    # 仅构建 Java Runner 镜像
+
+# 强制重新构建（不使用缓存）
+./build-images.sh --all --rebuild
 ```
 
-> **重要**: `tmp` 目录用于 APISIX 和 Java Runner 之间的 Unix Socket 通信，必须在启动容器前创建。
-
-**或者使用启动脚本（推荐）**:
+**步骤 4: 创建共享目录**
 
 ```bash
-# 使用启动脚本会自动创建 tmp 目录
-./start-docker.sh
+mkdir -p tmp && chmod 777 tmp
 ```
 
-#### 4. 启动 Redis (独立容器)
+**步骤 5: 启动 Redis（独立容器）**
 
 ```bash
 docker run -d \
@@ -151,27 +181,13 @@ docker run -d \
   redis-server --requirepass redis123
 ```
 
-#### 5. 启动网关服务
-
-**方式一：使用启动脚本（推荐）**
+**步骤 6: 启动网关服务**
 
 ```bash
-./start-docker.sh
+docker-compose up -d
 ```
 
-启动脚本会自动：
-- 创建 `tmp` 目录（如果不存在）
-- 启动所有容器
-- 检查服务状态
-- 验证 Socket 文件
-
-**方式二：手动启动**
-
-```bash
-docker-compose up -d --build
-```
-
-#### 6. 验证服务状态
+#### 验证服务状态
 
 ```bash
 # 查看容器状态

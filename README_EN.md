@@ -111,37 +111,67 @@ smart-gateway/
 
 ### Deployment Steps
 
-#### 1. Clone Repository
+#### Option 1: One-Click Startup (Recommended) ⭐️
+
+Suitable for quick deployment and daily use:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/doctormacky/smart-gateway.git
+cd smart-gateway
+
+# 2. Build JAR package (required for first deployment)
+mvn clean package -DskipTests
+
+# 3. One-click startup (auto-check images, create directories, start services)
+./start-docker.sh
+```
+
+The startup script will automatically:
+- ✅ Create `tmp` directory (if not exists)
+- ✅ Check APISIX image (pull from Docker Hub if not found locally)
+- ✅ Check Java Runner image (build automatically if not found locally)
+- ✅ Start all container services
+- ✅ Verify service status and Socket file
+
+#### Option 2: Manual Build and Start
+
+Suitable for scenarios requiring custom images or debugging:
+
+**Step 1: Clone Repository**
 
 ```bash
 git clone https://github.com/doctormacky/smart-gateway.git
 cd smart-gateway
 ```
 
-#### 2. Build JAR Package
+**Step 2: Build JAR Package**
 
 ```bash
 mvn clean package -DskipTests
 ```
 
-#### 3. Create Shared Directory
+**Step 3: Build Docker Images**
 
 ```bash
-# Create tmp directory for Unix Socket communication
-mkdir -p tmp
-chmod 777 tmp
+# Build all images
+./build-images.sh --all
+
+# Or build separately
+./build-images.sh --apisix    # Build APISIX image only
+./build-images.sh --runner    # Build Java Runner image only
+
+# Force rebuild (no cache)
+./build-images.sh --all --rebuild
 ```
 
-> **Important**: The `tmp` directory is used for Unix Socket communication between APISIX and Java Runner. It must be created before starting containers.
-
-**Or use the startup script (Recommended)**:
+**Step 4: Create Shared Directory**
 
 ```bash
-# The startup script will automatically create the tmp directory
-./start-docker.sh
+mkdir -p tmp && chmod 777 tmp
 ```
 
-#### 4. Start Redis (Standalone Container)
+**Step 5: Start Redis (Standalone Container)**
 
 ```bash
 docker run -d \
@@ -151,27 +181,13 @@ docker run -d \
   redis-server --requirepass redis123
 ```
 
-#### 5. Start Gateway Services
-
-**Option 1: Use Startup Script (Recommended)**
+**Step 6: Start Gateway Services**
 
 ```bash
-./start-docker.sh
+docker-compose up -d
 ```
 
-The startup script will automatically:
-- Create `tmp` directory (if not exists)
-- Start all containers
-- Check service status
-- Verify Socket file
-
-**Option 2: Manual Start**
-
-```bash
-docker-compose up -d --build
-```
-
-#### 6. Verify Service Status
+#### Verify Service Status
 
 ```bash
 # Check container status
