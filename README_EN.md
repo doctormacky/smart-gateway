@@ -27,11 +27,24 @@ Smart Gateway is an enterprise-grade intelligent API gateway solution based on *
 | Component | Version | Description |
 |-----------|---------|-------------|
 | Apache APISIX | 3.14.1 | High-performance API Gateway |
+| APISIX Dashboard | 3.0.1 | Web Management UI |
 | Java | 21 | Java Plugin Runner Runtime |
 | Spring Boot | 3.4.0 | Plugin Development Framework |
 | Redis | Latest | Token Storage and Cache |
 | ETCD | Latest | APISIX Configuration Center |
 | Docker | Latest | Container Deployment |
+
+---
+
+## 🌐 Service Ports
+
+| Service | Port | Description |
+|---------|------|-------------|
+| APISIX Gateway | 9080 | HTTP Gateway Entry |
+| APISIX Admin API | 9180 | Management API |
+| APISIX Dashboard | 9000 | Web Management UI |
+| ETCD | 2379 | Configuration Center |
+| Java Runner Debug | 5005 | Remote Debug Port (Optional) |
 
 ---
 

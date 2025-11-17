@@ -27,11 +27,24 @@ Smart Gateway 是一个基于 **Apache APISIX** 和 **Java Plugin Runner** 的�
 | 组件 | 版本 | 说明 |
 |------|------|------|
 | Apache APISIX | 3.14.1 | 高性能 API 网关 |
+| APISIX Dashboard | 3.0.1 | Web 管理界面 |
 | Java | 21 | Java Plugin Runner 运行环境 |
 | Spring Boot | 3.4.0 | 插件开发框架 |
 | Redis | Latest | Token 存储和缓存 |
 | ETCD | Latest | APISIX 配置中心 |
 | Docker | Latest | 容器化部署 |
+
+---
+
+## 🌐 服务端口
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| APISIX Gateway | 9080 | HTTP 网关入口 |
+| APISIX Admin API | 9180 | 管理 API |
+| APISIX Dashboard | 9000 | Web 管理界面 |
+| ETCD | 2379 | 配置中心 |
+| Java Runner Debug | 5005 | 远程调试端口（可选） |
 
 ---
 

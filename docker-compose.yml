@@ -34,6 +34,18 @@ services:
     #   - "5005:5005"
     # environment:
     #   - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+
+  apisix-dashboard:
+    image: apache/apisix-dashboard:3.0.1-alpine
+    restart: always
+    ports:
+      - "9000:9000"   # Dashboard Web UI
+    networks:
+      - apisix
+    environment:
+      - APISIX_ETCD_ENDPOINTS=http://etcd:2379
+    depends_on:
+      - etcd
   
   etcd:
     image: openeuler/etcd:latest

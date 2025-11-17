@@ -22,7 +22,6 @@ plugins:
   - basic-auth
   - hmac-auth
   - ldap-auth
-  - oauth
   - openid-connect
   
   # 安全防护
@@ -60,7 +59,6 @@ plugins:
   - proxy-cache
   - proxy-mirror
   - api-breaker
-  - degrades
   
   # 其他
   - redirect
