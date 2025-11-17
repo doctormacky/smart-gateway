@@ -5,7 +5,7 @@ spring:
     web-application-type: none
   data:
     redis:
-      host: 192.168.3.30
+      host: 192.168.201.112
       port: 6379
       password: redis123
       database: 1

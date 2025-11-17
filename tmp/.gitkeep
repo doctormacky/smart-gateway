@@ -1,2 +1,0 @@
-# 此文件用于让 Git 跟踪 tmp 目录
-# tmp 目录用于 APISIX 和 Java Plugin Runner 之间的 Unix Socket 通信
